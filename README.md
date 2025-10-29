@@ -18,6 +18,11 @@ This will ask if you want to create a convex project, or ask you to log in, crea
 
 Then make sure to copy the env variables from the provided file
 
+# Design Rules
+
+- No Dark mode
+- Use ShadCN components where possible, https://ui.shadcn.com/
+
 ## Learn more
 
 To learn more about developing your project with Convex, check out:
