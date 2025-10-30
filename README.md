@@ -22,7 +22,13 @@ Then make sure to copy the env variables from the provided file
 
 - No Dark mode
 - Use ShadCN components where possible, https://ui.shadcn.com/
-
+- Make sure your components are cateogrized like this:
+	components
+	|- ui // lowest level common shadcn components
+	|- shared // Shared larger components used in multiple views
+	|- users // Components for the users/public views 
+	|- vendors // Components for the vendor views
+	|- staff // Components for the staff/admin views
 ## Learn more
 
 To learn more about developing your project with Convex, check out:
