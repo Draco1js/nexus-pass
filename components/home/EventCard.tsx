@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 
@@ -56,10 +57,12 @@ export function EventCard({
         className="aspect-video relative w-full overflow-hidden bg-gray-200"
       >
         {imageUrl ? (
-          <img
+          <Image
             src={imageUrl}
             alt={displayTitle}
-            className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-200"
+            fill
+            className="object-cover object-center group-hover:scale-105 transition-transform duration-200"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
           <div className="absolute inset-0 w-full h-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center">

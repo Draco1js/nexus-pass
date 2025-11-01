@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Button } from "~/components/ui/button";
 
 interface HeroSectionProps {
@@ -31,10 +32,13 @@ export function HeroSection({ hero, formatDate }: HeroSectionProps) {
       {/* Background Image */}
       {imageUrl && (
         <div className="absolute inset-0 z-0">
-          <img
+          <Image
             src={imageUrl}
             alt={displayTitle}
-            className="w-full h-full object-cover object-top"
+            fill
+            className="object-cover object-top"
+            priority
+            sizes="100vw"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
         </div>

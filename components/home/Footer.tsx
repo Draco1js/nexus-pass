@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export function Footer() {
   return (
     <footer className="bg-gray-900 text-white py-8 md:py-12 mt-12 md:mt-16">
@@ -90,30 +92,36 @@ export function Footer() {
                     href="https://polar.sh"
                     className="hover:text-white transition-colors flex items-center gap-2"
                   >
-                    <img
+                    <Image
                       src="/polar.png"
                       alt="Polar"
-                      className="h-4 brightness-0 invert opacity-70"
+                      width={16}
+                      height={16}
+                      className="brightness-0 invert opacity-70"
                     />
                   </a>
                   <a
                     href="https://aws.amazon.com"
                     className="hover:text-white transition-colors"
                   >
-                    <img
+                    <Image
                       src="/aws.png"
                       alt="AWS"
-                      className="h-10 brightness-0 invert opacity-70"
+                      width={40}
+                      height={40}
+                      className="brightness-0 invert opacity-70"
                     />
                   </a>
                   <a
                     href="https://convex.dev"
                     className="hover:text-white transition-colors"
                   >
-                    <img
+                    <Image
                       src="/convex.svg"
                       alt="Convex"
-                      className="h-10 brightness-0 invert opacity-70"
+                      width={40}
+                      height={40}
+                      className="brightness-0 invert opacity-70"
                     />
                   </a>
                 </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { User } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { authClient } from "~/lib/auth-client";
@@ -21,10 +22,12 @@ export function UserButton({ variant }: UserButtonProps) {
           className="hidden md:flex items-center gap-2 hover:bg-white/10 rounded-md px-3 py-2 transition-colors"
         >
           {session.user.image ? (
-            <img
+            <Image
               src={session.user.image}
               alt={session.user.name || "User"}
-              className="size-8 rounded-full"
+              width={32}
+              height={32}
+              className="rounded-full"
             />
           ) : (
             <div className="size-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -58,10 +61,12 @@ export function UserButton({ variant }: UserButtonProps) {
       return (
         <Link href="/profile" className="block md:hidden">
           {session.user.image ? (
-            <img
+            <Image
               src={session.user.image}
               alt={session.user.name || "User"}
-              className="size-8 rounded-full"
+              width={32}
+              height={32}
+              className="rounded-full"
             />
           ) : (
             <div className="size-8 rounded-full bg-white/20 flex items-center justify-center">
@@ -90,10 +95,12 @@ export function UserButton({ variant }: UserButtonProps) {
           className="flex items-center gap-2 px-3 py-2 hover:bg-white/10 rounded-md transition-colors"
         >
           {session.user.image ? (
-            <img
+            <Image
               src={session.user.image}
               alt={session.user.name || "User"}
-              className="size-8 rounded-full"
+              width={32}
+              height={32}
+              className="rounded-full"
             />
           ) : (
             <div className="size-8 rounded-full bg-white/20 flex items-center justify-center">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Ticket, Menu, X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { SearchBar } from "./SearchBar";
@@ -37,7 +38,7 @@ export function Header() {
                   </a>
                 </div>
                 <div className="flex items-center gap-2 bg-[#26232c] px-3 py-1.5 rounded">
-                  <img src="/polar.png" alt="Polar" className="h-5 brightness-0 invert opacity-80" />
+                  <Image src="/polar.png" alt="Polar" width={20} height={20} className="brightness-0 invert opacity-80" />
                   <div className="text-[9px] leading-tight flex flex-col items-start text-gray-300">
                     <span>Preferred</span>
                     <span>Payments Partner</span>
