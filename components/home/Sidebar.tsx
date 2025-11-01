@@ -35,7 +35,7 @@ export function Sidebar() {
           Sell on NexusPass
         </h3>
         <p className="text-xs md:text-sm mb-3 md:mb-4">
-          When you're out, get other fans in
+          When you&apos;re out, get other fans in
         </p>
         <Button
           variant="outline"
