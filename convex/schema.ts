@@ -6,107 +6,276 @@ export default defineSchema({
     name: v.string(),
     email: v.string(),
     authId: v.string(),
-    role: v.union(v.literal("customer"), v.literal("venue"), v.literal("staff")),
+    image: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    role: v.union(v.literal("customer"), v.literal("admin")),
+    emailVerified: v.boolean(),
+    createdAt: v.number(),
   })
     .index("by_email", ["email"])
     .index("by_authId", ["authId"]),
 
-  venues: defineTable({
-    userId: v.id("users"),
+  // Categories for events (Concerts, Sports, Arts & Theater, Family, etc.)
+  categories: defineTable({
     name: v.string(),
+    slug: v.string(),
+    description: v.optional(v.string()),
+    icon: v.optional(v.string()),
+    sortOrder: v.number(),
+  })
+    .index("by_slug", ["slug"]),
+
+  // Artists/Performers
+  artists: defineTable({
+    name: v.string(),
+    slug: v.string(),
+    bio: v.optional(v.string()),
+    image: v.optional(v.string()),
+    genre: v.optional(v.string()),
+    website: v.optional(v.string()),
+    socialLinks: v.optional(
+      v.object({
+        facebook: v.optional(v.string()),
+        twitter: v.optional(v.string()),
+        instagram: v.optional(v.string()),
+        spotify: v.optional(v.string()),
+      })
+    ),
+    verified: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_genre", ["genre"]),
+
+  // Venues
+  venues: defineTable({
+    name: v.string(),
+    slug: v.string(),
     address: v.string(),
     city: v.string(),
+    state: v.optional(v.string()),
+    country: v.string(),
+    postalCode: v.optional(v.string()),
     capacity: v.number(),
+    phone: v.optional(v.string()),
+    website: v.optional(v.string()),
+    images: v.array(v.string()),
+    parkingInfo: v.optional(v.string()),
+    accessibilityInfo: v.optional(v.string()),
+    description: v.optional(v.string()),
+    coordinates: v.optional(
+      v.object({
+        latitude: v.number(),
+        longitude: v.number(),
+      })
+    ),
     createdAt: v.number(),
-    approvedBy: v.union(v.id("users"), v.null()),
-    isApproved: v.boolean(),
   })
-    .index("by_userId", ["userId"])
-    .index("by_city", ["city"]),
+    .index("by_slug", ["slug"])
+    .index("by_city", ["city"])
+    .index("by_city_and_state", ["city", "state"]),
 
+  // Events
   events: defineTable({
-    venueId: v.id("venues"),
     title: v.string(),
+    slug: v.string(),
     description: v.string(),
+    categoryId: v.id("categories"),
+    venueId: v.id("venues"),
+    artistId: v.optional(v.id("artists")),
+    images: v.array(v.string()),
     startTime: v.number(),
-    endTime: v.number(),
-    ticketPrice: v.number(),
-    refundPolicy: v.union(v.literal("no_refund"), v.literal("refund_allowed")),
-    isCancelled: v.boolean(),
+    endTime: v.optional(v.number()),
+    doorTime: v.optional(v.number()),
+    
+    // Ticket sales info
+    onSaleStartTime: v.number(),
+    onSaleEndTime: v.optional(v.number()),
+    presaleStartTime: v.optional(v.number()),
+    presaleEndTime: v.optional(v.number()),
+    presaleCode: v.optional(v.string()),
+    
+    // Status
+    status: v.union(
+      v.literal("on_sale"),
+      v.literal("off_sale"),
+      v.literal("sold_out"),
+      v.literal("cancelled"),
+      v.literal("postponed"),
+      v.literal("rescheduled")
+    ),
+    isFeatured: v.boolean(),
+    isPresale: v.boolean(),
+    
+    // Additional info
+    ageRestriction: v.optional(v.string()),
+    genre: v.optional(v.string()),
+    subGenre: v.optional(v.string()),
+    promoter: v.optional(v.string()),
+    
+    // Pricing
+    minPrice: v.number(),
+    maxPrice: v.number(),
+    currency: v.string(),
+    
+    // Metadata
+    tags: v.array(v.string()),
+    viewCount: v.number(),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
+    .index("by_slug", ["slug"])
     .index("by_venueId", ["venueId"])
-    .index("by_startTime", ["startTime"]),
+    .index("by_categoryId", ["categoryId"])
+    .index("by_artistId", ["artistId"])
+    .index("by_startTime", ["startTime"])
+    .index("by_status", ["status"])
+    .index("by_isFeatured", ["isFeatured"])
+    .index("by_categoryId_and_startTime", ["categoryId", "startTime"])
+    .index("by_venueId_and_startTime", ["venueId", "startTime"]),
 
-  seats: defineTable({
+  // Ticket types/tiers for an event
+  ticketTypes: defineTable({
     eventId: v.id("events"),
-    seatNumber: v.string(),
-    section: v.string(),
-    isReserved: v.boolean(),
-    reservedUntil: v.union(v.number(), v.null()),
-    createdAt: v.number(),
+    name: v.string(),
+    description: v.optional(v.string()),
+    price: v.number(),
+    fees: v.number(),
+    currency: v.string(),
+    totalQuantity: v.number(),
+    availableQuantity: v.number(),
+    minPerOrder: v.number(),
+    maxPerOrder: v.number(),
+    section: v.optional(v.string()),
+    tier: v.union(
+      v.literal("general"),
+      v.literal("vip"),
+      v.literal("premium"),
+      v.literal("standing"),
+      v.literal("seated")
+    ),
+    benefits: v.array(v.string()),
+    salesStartTime: v.number(),
+    salesEndTime: v.optional(v.number()),
+    isActive: v.boolean(),
   })
     .index("by_eventId", ["eventId"])
-    .index("by_eventId_and_section", ["eventId", "section"]),
+    .index("by_eventId_and_isActive", ["eventId", "isActive"]),
 
-  bookings: defineTable({
+  // Orders (renamed from bookings)
+  orders: defineTable({
     userId: v.id("users"),
     eventId: v.id("events"),
+    orderNumber: v.string(),
     totalAmount: v.number(),
+    subtotal: v.number(),
+    fees: v.number(),
+    tax: v.number(),
+    currency: v.string(),
     status: v.union(
       v.literal("pending"),
       v.literal("confirmed"),
       v.literal("cancelled"),
+      v.literal("refunded"),
+      v.literal("failed")
+    ),
+    paymentStatus: v.union(
+      v.literal("pending"),
+      v.literal("completed"),
+      v.literal("failed"),
       v.literal("refunded")
     ),
-    // Optionally, paymentId might be null if cash payment, etc
-    paymentId: v.union(v.id("payments"), v.null()),
+    paymentMethod: v.optional(v.string()),
+    confirmationEmail: v.boolean(),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_userId", ["userId"])
-    .index("by_eventId", ["eventId"]),
+    .index("by_eventId", ["eventId"])
+    .index("by_orderNumber", ["orderNumber"])
+    .index("by_status", ["status"]),
 
+  // Tickets in an order
   tickets: defineTable({
-    bookingId: v.id("bookings"),
-    seatId: v.id("seats"),
+    orderId: v.id("orders"),
+    ticketTypeId: v.id("ticketTypes"),
+    ticketNumber: v.string(),
     qrCode: v.string(),
-    issuedAt: v.number(),
-    isValid: v.boolean(),
-    checkedInAt: v.union(v.number(), v.null()),
-  })
-    .index("by_bookingId", ["bookingId"])
-    .index("by_seatId", ["seatId"]),
-
-  payments: defineTable({
-    bookingId: v.id("bookings"),
-    method: v.union(
-      v.literal("credit_card"),
-      v.literal("debit_card"),
-      v.literal("cash")
+    holderName: v.optional(v.string()),
+    holderEmail: v.optional(v.string()),
+    seatNumber: v.optional(v.string()),
+    section: v.optional(v.string()),
+    row: v.optional(v.string()),
+    price: v.number(),
+    status: v.union(
+      v.literal("valid"),
+      v.literal("used"),
+      v.literal("cancelled"),
+      v.literal("transferred")
     ),
-    transactionId: v.string(),
-    amount: v.number(),
-    status: v.union(v.literal("success"), v.literal("failed"), v.literal("refunded")),
-    processedAt: v.number(),
-    refundedAt: v.union(v.number(), v.null()),
+    issuedAt: v.number(),
+    usedAt: v.optional(v.number()),
+    transferredTo: v.optional(v.id("users")),
   })
-    .index("by_bookingId", ["bookingId"])
-    .index("by_transactionId", ["transactionId"]),
+    .index("by_orderId", ["orderId"])
+    .index("by_ticketTypeId", ["ticketTypeId"])
+    .index("by_ticketNumber", ["ticketNumber"])
+    .index("by_qrCode", ["qrCode"]),
 
+  // User favorites/watchlist
+  favorites: defineTable({
+    userId: v.id("users"),
+    eventId: v.optional(v.id("events")),
+    artistId: v.optional(v.id("artists")),
+    venueId: v.optional(v.id("venues")),
+    createdAt: v.number(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_userId_and_eventId", ["userId", "eventId"])
+    .index("by_userId_and_artistId", ["userId", "artistId"])
+    .index("by_userId_and_venueId", ["userId", "venueId"]),
+
+  // Reviews/Ratings
+  reviews: defineTable({
+    userId: v.id("users"),
+    eventId: v.id("events"),
+    rating: v.number(),
+    title: v.optional(v.string()),
+    comment: v.optional(v.string()),
+    isVerifiedPurchase: v.boolean(),
+    helpful: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_eventId", ["eventId"])
+    .index("by_eventId_and_rating", ["eventId", "rating"]),
+
+  // Support tickets
   supportTickets: defineTable({
     userId: v.id("users"),
+    orderId: v.optional(v.id("orders")),
     subject: v.string(),
     message: v.string(),
+    category: v.union(
+      v.literal("order"),
+      v.literal("technical"),
+      v.literal("refund"),
+      v.literal("transfer"),
+      v.literal("other")
+    ),
     status: v.union(
       v.literal("open"),
       v.literal("in_progress"),
-      v.literal("resolved")
+      v.literal("resolved"),
+      v.literal("closed")
     ),
-    assignedTo: v.union(v.id("users"), v.null()),
+    priority: v.union(v.literal("low"), v.literal("medium"), v.literal("high")),
+    assignedTo: v.optional(v.id("users")),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_userId", ["userId"])
+    .index("by_orderId", ["orderId"])
+    .index("by_status", ["status"]),
 });

@@ -9,7 +9,9 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as events from "../events.js";
 import type * as http from "../http.js";
+import type * as seedMutation from "../seedMutation.js";
 
 import type {
   ApiFromModules,
@@ -27,7 +29,9 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  events: typeof events;
   http: typeof http;
+  seedMutation: typeof seedMutation;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
