@@ -38,7 +38,7 @@ export function Header() {
                   </a>
                 </div>
                 <div className="flex items-center gap-2 bg-[#26232c] px-3 py-1.5 rounded">
-                  <Image src="/polar.png" alt="Polar" width={20} height={20} className="brightness-0 invert opacity-80" />
+                  <Image src="/polar.png" alt="Polar" width={80} height={80} className="brightness-0 invert opacity-80" />
                   <div className="text-[9px] leading-tight flex flex-col items-start text-gray-300">
                     <span>Preferred</span>
                     <span>Payments Partner</span>

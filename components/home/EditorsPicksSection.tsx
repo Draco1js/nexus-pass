@@ -32,22 +32,25 @@ export function EditorsPicksSection({
 }: EditorsPicksSectionProps) {
   if (!events || events.length === 0) return null;
 
+  // Limit to 6 events on mobile to prevent overflow
+  const displayEvents = events
+    .filter((e): e is NonNullable<typeof e> => e !== null)
+    .slice(0, 6);
+
   return (
     <section>
       <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">
         WHAT TO SEE
       </h2>
       <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 overflow-x-auto md:overflow-x-visible pb-4 md:pb-0 scrollbar-hide">
-        {events
-          .filter((e): e is NonNullable<typeof e> => e !== null)
-          .map((event) => (
-            <EventCard
-              key={event._id}
-              event={event}
-              variant="editors"
-              formatDate={formatDate}
-            />
-          ))}
+        {displayEvents.map((event) => (
+          <EventCard
+            key={event._id}
+            event={event}
+            variant="editors"
+            formatDate={formatDate}
+          />
+        ))}
       </div>
     </section>
   );

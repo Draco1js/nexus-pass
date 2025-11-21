@@ -46,7 +46,7 @@ export function EventCard({
 
   return (
     <Card
-      className={`overflow-hidden p-0 ${isPresale ? "relative" : ""} hover:shadow-xl hover:scale-[1.02] transition-all duration-200 cursor-pointer ${isCity ? "min-w-[240px]" : "min-w-[280px]"} md:min-w-0 shrink-0 md:shrink bg-white`}
+      className={`overflow-hidden p-0 ${isPresale ? "relative" : ""} hover:shadow-xl hover:scale-[1.02] transition-all duration-200 cursor-pointer ${isCity ? "min-w-[240px]" : isEditors ? "min-w-[280px] max-w-[280px] md:max-w-none" : "min-w-[280px]"} md:min-w-0 shrink-0 md:shrink bg-white`}
     >
       {isPresale && (
         <div className="absolute top-2 right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded font-semibold z-10">
@@ -77,7 +77,7 @@ export function EventCard({
           {displayTitle}
         </h3>
         {isEditors && event.description && (
-          <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4 line-clamp-2">
+          <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4 line-clamp-2 wrap-break-word">
             {event.description}
           </p>
         )}

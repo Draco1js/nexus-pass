@@ -95,8 +95,8 @@ export function Footer() {
                     <Image
                       src="/polar.png"
                       alt="Polar"
-                      width={16}
-                      height={16}
+                      width={80}
+                      height={80}
                       className="brightness-0 invert opacity-70"
                     />
                   </a>
@@ -107,8 +107,8 @@ export function Footer() {
                     <Image
                       src="/aws.png"
                       alt="AWS"
-                      width={40}
-                      height={40}
+                      width={60}
+                      height={60}
                       className="brightness-0 invert opacity-70"
                     />
                   </a>
