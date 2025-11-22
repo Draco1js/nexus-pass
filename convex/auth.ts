@@ -1,14 +1,51 @@
-import { createClient, type GenericCtx } from "@convex-dev/better-auth";
+import { AuthFunctions, createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
-import { components } from "./_generated/api";
+import { components, internal } from "./_generated/api";
 import { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { betterAuth } from "better-auth";
+import { ConvexError } from "convex/values";
 
+const authFunctions: AuthFunctions = internal.auth;
 
-// The component client has methods needed for integrating Convex with Better Auth,
-// as well as helper methods for general use.
-export const authComponent = createClient<DataModel>(components.betterAuth);
+export const authComponent = createClient<DataModel>(components.betterAuth, {
+	authFunctions,
+	triggers: {
+		user: {
+			onCreate: async (ctx, authUser) => {
+				await ctx.db.insert("users", {
+					name: authUser.name,
+					emailVerified: authUser.emailVerified,
+					role: "customer",
+					authId: authUser._id,
+					email: authUser.email ?? "",
+				});
+			},
+			onUpdate: async (ctx, newDoc, oldDoc) => {
+				const authId = ctx.db.normalizeId("users",newDoc._id)
+				if(!authId) {
+					throw new ConvexError("Unknown User?")
+				}
+				await ctx.db.patch(authId, {
+					name: newDoc.name,
+					email: newDoc.email,
+					emailVerified: newDoc.emailVerified,
+					image: newDoc.image || "",
+					phone: newDoc.phoneNumber || "",
+				});
+			},
+			onDelete: async (ctx, doc) => {
+				const authId = ctx.db.normalizeId("users",doc._id)
+				if(!authId) {
+					throw new ConvexError("Unknown User?")
+				}
+				await ctx.db.patch(authId, { isDeleted: true });
+			},
+		}
+	}
+});
+
+export const { onCreate, onUpdate, onDelete } = authComponent.triggersApi();
 
 export const createAuth = (
 	ctx: GenericCtx<DataModel>,
@@ -38,8 +75,6 @@ export const createAuth = (
 	});
 };
 
-// Example function for getting the current user
-// Feel free to edit, omit, etc.
 export const getCurrentUser = query({
 	args: {},
 	handler: async (ctx) => {

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 
@@ -19,6 +20,7 @@ interface EventCardProps {
     };
     artist?: {
       name: string;
+      slug?: string;
       image?: string;
     } | null;
     isPresale?: boolean;
@@ -43,6 +45,8 @@ export function EventCard({
   
   // Get the first image or use artist image as fallback
   const imageUrl = event.images[0] || event.artist?.image;
+
+  const artistSlug = event.artist?.slug || event.slug;
 
   return (
     <Card
@@ -70,12 +74,13 @@ export function EventCard({
           </div>
         )}
       </div>
-      <div className="p-3 md:p-4">
-        <h3
-          className={`font-bold ${isCity ? "text-sm md:text-base" : "text-base md:text-lg"} ${isCity ? "mb-1" : "mb-2"} hover:text-[#0A23F0] transition-colors line-clamp-2`}
-        >
-          {displayTitle}
-        </h3>
+      <Link href={`/artist/${artistSlug}`}>
+        <div className="p-3 md:p-4">
+          <h3
+            className={`font-bold ${isCity ? "text-sm md:text-base" : "text-base md:text-lg"} ${isCity ? "mb-1" : "mb-2"} hover:text-[#0A23F0] transition-colors line-clamp-2`}
+          >
+            {displayTitle}
+          </h3>
         {isEditors && event.description && (
           <p className="text-xs md:text-sm text-gray-600 mb-3 md:mb-4 line-clamp-2 wrap-break-word">
             {event.description}
@@ -102,23 +107,24 @@ export function EventCard({
             {event.venue.name}, {event.venue.city}
           </p>
         )}
-        {!isCity && (
-          <Button
-            variant={isPresale || isEditors ? "outline" : "default"}
-            className={`w-full text-sm ${
-              isPresale || isEditors
-                ? "hover:bg-[#0A23F0] hover:text-white hover:border-[#0A23F0]"
-                : "bg-[#0A23F0] hover:bg-[#0819c7] text-white"
-            } transition-colors`}
-          >
-            {isPresale
-              ? "Set Reminder"
-              : isEditors
-                ? "Discover More"
-                : "View Tickets"}
-          </Button>
-        )}
-      </div>
+          {!isCity && (
+            <Button
+              variant={isPresale || isEditors ? "outline" : "default"}
+              className={`w-full text-sm ${
+                isPresale || isEditors
+                  ? "hover:bg-[#0A23F0] hover:text-white hover:border-[#0A23F0]"
+                  : "bg-[#0A23F0] hover:bg-[#0819c7] text-white"
+              } transition-colors`}
+            >
+              {isPresale
+                ? "Set Reminder"
+                : isEditors
+                  ? "Discover More"
+                  : "View Tickets"}
+            </Button>
+          )}
+        </div>
+      </Link>
     </Card>
   );
 }

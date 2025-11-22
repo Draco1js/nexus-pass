@@ -10,7 +10,7 @@ export default defineSchema({
     phone: v.optional(v.string()),
     role: v.union(v.literal("customer"), v.literal("admin")),
     emailVerified: v.boolean(),
-    createdAt: v.number(),
+    isDeleted: v.optional(v.boolean())
   })
     .index("by_email", ["email"])
     .index("by_authId", ["authId"]),
@@ -42,6 +42,34 @@ export default defineSchema({
       })
     ),
     verified: v.boolean(),
+    // Artist-controlled content
+    vipPackages: v.optional(
+      v.array(
+        v.object({
+          name: v.string(),
+          image: v.optional(v.string()),
+          description: v.array(v.string()),
+        })
+      )
+    ),
+    faqs: v.optional(
+      v.array(
+        v.object({
+          question: v.string(),
+          answer: v.string(),
+        })
+      )
+    ),
+    news: v.optional(
+      v.array(
+        v.object({
+          title: v.string(),
+          image: v.optional(v.string()),
+          excerpt: v.string(),
+          link: v.optional(v.string()),
+        })
+      )
+    ),
     createdAt: v.number(),
   })
     .index("by_slug", ["slug"])
@@ -238,18 +266,20 @@ export default defineSchema({
   // Reviews/Ratings
   reviews: defineTable({
     userId: v.id("users"),
-    eventId: v.id("events"),
+    artistId: v.id("artists"),
+    eventId: v.optional(v.id("events")),
+    venueName: v.optional(v.string()),
     rating: v.number(),
     title: v.optional(v.string()),
-    comment: v.optional(v.string()),
+    comment: v.string(),
     isVerifiedPurchase: v.boolean(),
     helpful: v.number(),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_userId", ["userId"])
-    .index("by_eventId", ["eventId"])
-    .index("by_eventId_and_rating", ["eventId", "rating"]),
+    .index("by_artistId", ["artistId"])
+    .index("by_eventId", ["eventId"]),
 
   // Support tickets
   supportTickets: defineTable({

@@ -233,3 +233,72 @@ export const seedDatabase = internalMutation({
 	},
 });
 
+export const seedReviews = internalMutation({
+	args: {
+		reviews: v.array(
+			v.object({
+				artistName: v.string(),
+				reviews: v.array(
+					v.object({
+						userName: v.string(),
+						rating: v.number(),
+						title: v.optional(v.string()),
+						comment: v.string(),
+						venueName: v.optional(v.string()),
+					}),
+				),
+			}),
+		),
+	},
+	returns: v.object({
+		reviewsCreated: v.number(),
+	}),
+	handler: async (ctx, args) => {
+		const now = Date.now();
+		let reviewsCreated = 0;
+
+		// Get all users (we'll use the first user for reviews, or create a dummy user)
+		const users = await ctx.db.query("users").collect();
+		if (users.length === 0) {
+			console.log("⚠️  No users found. Reviews will not be created.");
+			return { reviewsCreated: 0 };
+		}
+
+		// Get all artists
+		const allArtists = await ctx.db.query("artists").collect();
+		const artistMap = new Map(allArtists.map((a) => [a.name, a._id]));
+
+		for (const artistReviewGroup of args.reviews) {
+			const artistId = artistMap.get(artistReviewGroup.artistName);
+			if (!artistId) {
+				console.log(`⚠️  Artist "${artistReviewGroup.artistName}" not found. Skipping reviews.`);
+				continue;
+			}
+
+			// Get a random user for each review (or use the first user)
+			const getUser = () => users[Math.floor(Math.random() * users.length)] || users[0];
+
+			for (const review of artistReviewGroup.reviews) {
+				const user = getUser();
+				await ctx.db.insert("reviews", {
+					userId: user._id,
+					artistId: artistId,
+					eventId: undefined,
+					rating: review.rating,
+					title: review.title,
+					comment: review.comment,
+					venueName: review.venueName,
+					isVerifiedPurchase: false,
+					helpful: 0,
+					createdAt: now - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000), // Random date in last 30 days
+					updatedAt: now,
+				});
+				reviewsCreated++;
+			}
+		}
+
+		console.log(`✅ Created ${reviewsCreated} reviews`);
+		return { reviewsCreated };
+	},
+});
+

@@ -1,5 +1,6 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { authComponent } from "./auth";
 
 export const getCities = query({
 	args: {},
@@ -173,5 +174,274 @@ export const homepageHighlights = query({
 			cityGroups,
 			editorsPicks,
 		} as const;
+	},
+});
+
+/**
+ * Get artist by slug with all their upcoming events
+ */
+export const getArtistBySlug = query({
+	args: {
+		slug: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const artist = await ctx.db
+			.query("artists")
+			.withIndex("by_slug", (q) => q.eq("slug", args.slug))
+			.first();
+
+		if (!artist) {
+			return null;
+		}
+
+		// Get all upcoming events for this artist
+		const now = Date.now();
+		const events = await ctx.db
+			.query("events")
+			.withIndex("by_startTime", (q) => q.gte("startTime", now))
+			.collect();
+
+		const artistEvents = events.filter((e) => e.artistId === artist._id);
+
+		// Enrich events with venue and category info
+		const enrichedEvents = await Promise.all(
+			artistEvents.map(async (event) => {
+				const venue = await ctx.db.get(event.venueId);
+				const category = await ctx.db.get(event.categoryId);
+
+				if (!venue) return null;
+
+				return {
+					_id: event._id,
+					title: event.title,
+					slug: event.slug,
+					startTime: event.startTime,
+					endTime: event.endTime,
+					doorTime: event.doorTime,
+					minPrice: event.minPrice,
+					maxPrice: event.maxPrice,
+					currency: event.currency,
+					status: event.status,
+					isPresale: event.isPresale,
+					venue: {
+						_id: venue._id,
+						name: venue.name,
+						city: venue.city,
+						state: venue.state,
+						address: venue.address,
+						country: venue.country,
+					},
+					category: category
+						? {
+								_id: category._id,
+								name: category.name,
+						  }
+						: null,
+				};
+			}),
+		);
+
+		const validEvents = enrichedEvents.filter(
+			(e): e is NonNullable<typeof e> => e !== null,
+		);
+
+		// Sort events by start time
+		validEvents.sort((a, b) => a.startTime - b.startTime);
+
+		// Get category for breadcrumb
+		const category = validEvents[0]?.category;
+
+		return {
+			_id: artist._id,
+			name: artist.name,
+			slug: artist.slug,
+			bio: artist.bio,
+			image: artist.image,
+			genre: artist.genre,
+			website: artist.website,
+			socialLinks: artist.socialLinks,
+			vipPackages: artist.vipPackages,
+			faqs: artist.faqs,
+			news: artist.news,
+			category: category?.name || "Concerts",
+			events: validEvents,
+		};
+	},
+});
+
+/**
+ * Get event by slug with full details including ticket types
+ */
+export const getEventBySlug = query({
+	args: {
+		slug: v.string(),
+	},
+	handler: async (ctx, args) => {
+		const event = await ctx.db
+			.query("events")
+			.withIndex("by_slug", (q) => q.eq("slug", args.slug))
+			.first();
+
+		if (!event) {
+			return null;
+		}
+
+		// Get venue, artist, and category
+		const venue = await ctx.db.get(event.venueId);
+		const artist = event.artistId ? await ctx.db.get(event.artistId) : null;
+		const category = await ctx.db.get(event.categoryId);
+
+		// Get ticket types for this event
+		const ticketTypes = await ctx.db
+			.query("ticketTypes")
+			.withIndex("by_eventId", (q) => q.eq("eventId", event._id))
+			.filter((q) => q.eq(q.field("isActive"), true))
+			.collect();
+
+		return {
+			_id: event._id,
+			title: event.title,
+			slug: event.slug,
+			description: event.description,
+			images: event.images,
+			startTime: event.startTime,
+			endTime: event.endTime,
+			doorTime: event.doorTime,
+			minPrice: event.minPrice,
+			maxPrice: event.maxPrice,
+			currency: event.currency,
+			status: event.status,
+			isPresale: event.isPresale,
+			presaleStartTime: event.presaleStartTime,
+			presaleEndTime: event.presaleEndTime,
+			presaleCode: event.presaleCode,
+			ageRestriction: event.ageRestriction,
+			genre: event.genre,
+			venue: venue
+				? {
+						_id: venue._id,
+						name: venue.name,
+						city: venue.city,
+						state: venue.state,
+						address: venue.address,
+						country: venue.country,
+				  }
+				: null,
+			artist: artist
+				? {
+						_id: artist._id,
+						name: artist.name,
+						slug: artist.slug,
+						image: artist.image,
+				  }
+				: null,
+			category: category
+				? {
+						_id: category._id,
+						name: category.name,
+						slug: category.slug,
+				  }
+				: null,
+			ticketTypes: ticketTypes.map((tt) => ({
+				_id: tt._id,
+				name: tt.name,
+				description: tt.description,
+				price: tt.price,
+				fees: tt.fees,
+				currency: tt.currency,
+				availableQuantity: tt.availableQuantity,
+				minPerOrder: tt.minPerOrder,
+				maxPerOrder: tt.maxPerOrder,
+				section: tt.section,
+				tier: tt.tier,
+				benefits: tt.benefits,
+			})),
+		};
+	},
+});
+
+/**
+ * Get related artists (for Fans Also Viewed section)
+ */
+export const getRelatedArtists = query({
+	args: {
+		excludeId: v.id("artists"),
+		limit: v.number(),
+	},
+	handler: async (ctx, args) => {
+		const allArtists = await ctx.db.query("artists").collect();
+		const filtered = allArtists.filter((a) => a._id !== args.excludeId);
+
+		// Shuffle and take limit
+		const shuffled = filtered.sort(() => Math.random() - 0.5);
+		return shuffled.slice(0, args.limit).map((artist) => ({
+			_id: artist._id,
+			name: artist.name,
+			slug: artist.slug,
+			image: artist.image,
+		}));
+	},
+});
+
+/**
+ * Get reviews for an artist
+ */
+export const getArtistReviews = query({
+	args: {
+		artistId: v.id("artists"),
+	},
+	handler: async (ctx, args) => {
+		const reviews = await ctx.db
+			.query("reviews")
+			.withIndex("by_artistId", (q) => q.eq("artistId", args.artistId))
+			.order("desc")
+			.take(100);
+
+		// Enrich with user names and check if current user can delete
+		// Try to get auth user, but don't fail if not authenticated
+		let currentUserId: string | null = null;
+		try {
+			const authUser = await authComponent.getAuthUser(ctx);
+			if (authUser) {
+				const authId = (authUser as any).id || (authUser as any).userId;
+				if (authId) {
+					const currentUser = await ctx.db
+						.query("users")
+						.withIndex("by_authId", (q) => q.eq("authId", authId))
+						.first();
+					currentUserId = currentUser?._id || null;
+				}
+			}
+		} catch (error) {
+			// User is not authenticated, which is fine for viewing reviews
+			currentUserId = null;
+		}
+
+		const enrichedReviews = await Promise.all(
+			reviews.map(async (review) => {
+				const user = await ctx.db.get(review.userId);
+				return {
+					_id: review._id,
+					rating: review.rating,
+					title: review.title,
+					comment: review.comment,
+					venueName: review.venueName,
+					userName: user?.name || "Anonymous",
+					userId: review.userId,
+					canDelete: currentUserId === review.userId,
+					createdAt: review.createdAt,
+				};
+			}),
+		);
+
+		// Calculate average rating
+		const totalRating = enrichedReviews.reduce((sum, r) => sum + r.rating, 0);
+		const averageRating = enrichedReviews.length > 0 ? totalRating / enrichedReviews.length : 0;
+
+		return {
+			reviews: enrichedReviews,
+			averageRating,
+			totalReviews: enrichedReviews.length,
+		};
 	},
 });

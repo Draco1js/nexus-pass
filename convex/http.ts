@@ -53,4 +53,50 @@ http.route({
 	}),
 });
 
+// Seed reviews endpoint
+http.route({
+	path: "/api/seed-reviews",
+	method: "POST",
+	handler: httpAction(async (ctx, request) => {
+		const body = await request.json();
+
+		if (!body.reviews || !Array.isArray(body.reviews)) {
+			return new Response(JSON.stringify({ error: "Invalid request body" }), {
+				status: 400,
+				headers: { "Content-Type": "application/json" },
+			});
+		}
+
+		try {
+			const result = await ctx.runMutation(internal.seedMutation.seedReviews, {
+				reviews: body.reviews,
+			});
+
+			return new Response(
+				JSON.stringify({
+					success: true,
+					message: "Reviews seeded successfully",
+					stats: result,
+				}),
+				{
+					status: 200,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
+		} catch (error) {
+			console.error("Seed reviews error:", error);
+			return new Response(
+				JSON.stringify({
+					error: "Failed to seed reviews",
+					details: error instanceof Error ? error.message : String(error),
+				}),
+				{
+					status: 500,
+					headers: { "Content-Type": "application/json" },
+				},
+			);
+		}
+	}),
+});
+
 export default http;
