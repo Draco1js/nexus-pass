@@ -325,6 +325,8 @@ export const getEventBySlug = query({
 						state: venue.state,
 						address: venue.address,
 						country: venue.country,
+						capacity: venue.capacity,
+						venueType: venue.venueType || "theatre",
 				  }
 				: null,
 			artist: artist
@@ -380,6 +382,38 @@ export const getRelatedArtists = query({
 			slug: artist.slug,
 			image: artist.image,
 		}));
+	},
+});
+
+/**
+ * Get ticket type by ID
+ */
+export const getTicketType = query({
+	args: {
+		id: v.id("ticketTypes"),
+	},
+	handler: async (ctx, args) => {
+		const ticketType = await ctx.db.get(args.id);
+		if (!ticketType) {
+			return null;
+		}
+		
+		// Get event to include eventId
+		const event = await ctx.db.get(ticketType.eventId);
+		
+		return {
+			_id: ticketType._id,
+			name: ticketType.name,
+			description: ticketType.description,
+			price: ticketType.price,
+			fees: ticketType.fees,
+			currency: ticketType.currency,
+			availableQuantity: ticketType.availableQuantity,
+			section: ticketType.section,
+			tier: ticketType.tier,
+			eventId: ticketType.eventId,
+			eventSlug: event?.slug || null,
+		};
 	},
 });
 

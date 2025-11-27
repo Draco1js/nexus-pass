@@ -85,6 +85,7 @@ export default defineSchema({
     country: v.string(),
     postalCode: v.optional(v.string()),
     capacity: v.number(),
+    venueType: v.optional(v.union(v.literal("theatre"), v.literal("fan"), v.literal("stadium"))),
     phone: v.optional(v.string()),
     website: v.optional(v.string()),
     images: v.array(v.string()),

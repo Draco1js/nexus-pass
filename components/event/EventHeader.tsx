@@ -36,7 +36,7 @@ export function EventHeader({ event }: EventHeaderProps) {
 		<div className="bg-white border-b border-gray-200">
 			<div className="max-w-[1920px] mx-auto px-6 py-4">
 				{/* Breadcrumbs */}
-				<nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
+				<nav className="flex items-center gap-2 text-sm text-gray-600 mb-6 flex-wrap">
 					<Link href="/" className="hover:text-[#0A23F0]">
 						Home
 					</Link>

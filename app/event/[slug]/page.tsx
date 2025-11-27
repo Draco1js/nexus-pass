@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "~/convex/_generated/api";
 import { Header } from "~/components/home/Header";
@@ -14,6 +15,8 @@ export default function EventPage() {
 	const params = useParams();
 	const slug = params.slug as string;
 	const event = useQuery(api.events.getEventBySlug, { slug });
+	const [selectedSection, setSelectedSection] = useState<string | null>(null);
+	
 	const isLoading = event === undefined;
 
 	if (isLoading) {
@@ -50,11 +53,19 @@ export default function EventPage() {
 					<div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-8">
 						{/* Seating Chart */}
 						<div className="order-2 lg:order-1">
-							<SeatingChart event={event} />
+							<SeatingChart 
+								event={event} 
+								selectedSection={selectedSection}
+								onSelectSection={setSelectedSection}
+							/>
 						</div>
 						{/* Ticket Selection Panel */}
 						<div className="order-1 lg:order-2">
-							<TicketSelectionPanel event={event} />
+							<TicketSelectionPanel 
+								event={event} 
+								selectedSection={selectedSection}
+								onSelectSection={setSelectedSection}
+							/>
 						</div>
 					</div>
 				</div>

@@ -9,6 +9,9 @@ import {
 	PopoverTrigger,
 } from "~/components/ui/popover";
 import { Slider } from "~/components/ui/slider";
+import { useAction } from "convex/react";
+import { api } from "~/convex/_generated/api";
+import { Id } from "~/convex/_generated/dataModel";
 
 interface TicketType {
 	_id: string;
@@ -30,9 +33,11 @@ interface TicketSelectionPanelProps {
 		currency: string;
 		ticketTypes: TicketType[];
 	};
+	selectedSection: string | null;
+	onSelectSection: (sectionId: string | null) => void;
 }
 
-export function TicketSelectionPanel({ event }: TicketSelectionPanelProps) {
+export function TicketSelectionPanel({ event, selectedSection, onSelectSection }: TicketSelectionPanelProps) {
 	const [ticketQuantity, setTicketQuantity] = useState(2);
 	const minPrice = event.minPrice || 0;
 	const maxPrice = event.maxPrice || 10000;
@@ -42,11 +47,14 @@ export function TicketSelectionPanel({ event }: TicketSelectionPanelProps) {
 	]);
 	const [sortBy, setSortBy] = useState<"lowest" | "best">("lowest");
 	const [filtersOpen, setFiltersOpen] = useState(false);
+	
+	const createCheckout = useAction(api.polar.createCheckout);
 
 	// Generate sample tickets with sections and rows
 	const availableTickets = useMemo(() => {
 		const tickets: Array<{
 			id: string;
+			ticketTypeId: string;
 			section: string;
 			row: string;
 			type: string;
@@ -61,6 +69,7 @@ export function TicketSelectionPanel({ event }: TicketSelectionPanelProps) {
 			for (let i = 0; i < numTickets; i++) {
 				tickets.push({
 					id: `${tt._id}-${i}`,
+					ticketTypeId: tt._id,
 					section: tt.section || `Sec ${idx + 1}`,
 					row: `Row ${Math.floor(Math.random() * 30) + 1}`,
 					type: tt.tier === "vip" ? "Official Platinum" : tt.tier === "premium" ? "Verified Resale Ticket" : "Standard Ticket",
@@ -71,12 +80,18 @@ export function TicketSelectionPanel({ event }: TicketSelectionPanelProps) {
 			}
 		});
 
+		// Filter by selected section
+		let filteredTickets = tickets;
+		if (selectedSection) {
+			filteredTickets = tickets.filter(t => t.section === selectedSection);
+		}
+
 		// Sort tickets
 		if (sortBy === "lowest") {
-			tickets.sort((a, b) => (a.price + a.fees) - (b.price + b.fees));
+			filteredTickets.sort((a, b) => (a.price + a.fees) - (b.price + b.fees));
 		} else {
 			// Best seats - prioritize lower sections
-			tickets.sort((a, b) => {
+			filteredTickets.sort((a, b) => {
 				const aNum = parseInt(a.section.replace(/\D/g, "")) || 999;
 				const bNum = parseInt(b.section.replace(/\D/g, "")) || 999;
 				return aNum - bNum;
@@ -84,14 +99,30 @@ export function TicketSelectionPanel({ event }: TicketSelectionPanelProps) {
 		}
 
 		// Filter by price range
-		return tickets.filter(
+		return filteredTickets.filter(
 			(t) =>
 				t.price + t.fees >= priceRange[0] && t.price + t.fees <= priceRange[1]
 		);
-	}, [event.ticketTypes, sortBy, priceRange]);
+	}, [event.ticketTypes, sortBy, priceRange, selectedSection]);
 
-	const totalPrice = (ticket: typeof availableTickets[0]) =>
-		(ticket.price + ticket.fees) * ticketQuantity;
+	const handleBuy = async (ticket: typeof availableTickets[0]) => {
+		try {
+			const link = await createCheckout({
+				ticketTypeId: ticket.ticketTypeId as Id<"ticketTypes">,
+				price: ticket.price + ticket.fees, // pass total or just price
+			});
+			
+			if (link) {
+				window.location.href = link;
+			} else {
+				console.log("Simulated checkout initiated for", ticket);
+				alert("Checkout initiated! (Requires Polar configuration)");
+			}
+		} catch (error) {
+			console.error("Checkout error:", error);
+			alert("Failed to initiate checkout. Please try again.");
+		}
+	};
 
 	const formatPrice = (amount: number) => {
 		return new Intl.NumberFormat("en-PK", {
@@ -195,9 +226,11 @@ export function TicketSelectionPanel({ event }: TicketSelectionPanelProps) {
 				{availableTickets.map((ticket) => (
 					<div
 						key={ticket.id}
-						className={`border rounded-none p-4 cursor-pointer hover:border-[#0A23F0] transition-colors ${
+						className={`border rounded-none p-4 transition-colors ${
 							ticket.isFeatured ? "border-[#0A23F0] bg-[#0A23F0]/5" : "border-gray-200"
 						}`}
+						onMouseEnter={() => onSelectSection(ticket.section)}
+						onMouseLeave={() => onSelectSection(null)}
 					>
 						<div className="flex items-start justify-between">
 							<div className="flex-1">
@@ -214,11 +247,20 @@ export function TicketSelectionPanel({ event }: TicketSelectionPanelProps) {
 								</div>
 								<p className="text-sm text-gray-600">{ticket.type}</p>
 							</div>
-							<div className="text-right">
-								<p className="font-bold text-lg text-gray-900">
-									{formatPrice(ticket.price + ticket.fees)}
-								</p>
-								<p className="text-xs text-gray-500">per ticket</p>
+							<div className="text-right flex flex-col items-end gap-2">
+								<div>
+									<p className="font-bold text-lg text-gray-900">
+										{formatPrice(ticket.price + ticket.fees)}
+									</p>
+									<p className="text-xs text-gray-500">per ticket</p>
+								</div>
+								<Button 
+									size="sm" 
+									className="bg-[#0A23F0] hover:bg-[#0A23F0]/90 text-white rounded-none"
+									onClick={() => handleBuy(ticket)}
+								>
+									Buy
+								</Button>
 							</div>
 						</div>
 					</div>

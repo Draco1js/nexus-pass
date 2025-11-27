@@ -73,6 +73,13 @@ export const seedDatabase = internalMutation({
 	const cities = venues.map(v => v.city);
 
 	for (const venue of venues) {
+		// Determine venue type based on name
+		const venueType = venue.name.toLowerCase().includes("stadium") 
+			? "stadium" 
+			: venue.name.toLowerCase().includes("club") || venue.name.toLowerCase().includes("square")
+			? "fan"
+			: "theatre";
+
 		const venueId = await ctx.db.insert("venues", {
 			name: venue.name,
 			slug: venue.slug,
@@ -82,6 +89,7 @@ export const seedDatabase = internalMutation({
 			country: "Pakistan",
 			postalCode: undefined,
 			capacity: 15000,
+			venueType: venueType,
 			phone: undefined,
 			website: undefined,
 			images: [
