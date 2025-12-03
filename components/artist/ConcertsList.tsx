@@ -265,9 +265,27 @@ export function ConcertsList({ events }: ConcertsListProps) {
 														{event.venue.city}
 														{event.venue.state && `, ${event.venue.state}`} • {event.venue.name}
 													</div>
-													<h4 className="text-base md:text-lg font-bold text-gray-900 mt-1">
+													<div className="flex items-center gap-2 mt-1">
+														<h4 className="text-base md:text-lg font-bold text-gray-900">
 														{event.title}
 													</h4>
+														{event.status && event.status !== "on_sale" && (
+															<span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+																event.status === "sold_out" ? "bg-purple-100 text-purple-700" :
+																event.status === "cancelled" ? "bg-red-100 text-red-700" :
+																event.status === "postponed" ? "bg-yellow-100 text-yellow-700" :
+																event.status === "rescheduled" ? "bg-blue-100 text-blue-700" :
+																"bg-gray-100 text-gray-700"
+															}`}>
+																{event.status === "sold_out" ? "Sold Out" :
+																 event.status === "cancelled" ? "Cancelled" :
+																 event.status === "postponed" ? "Postponed" :
+																 event.status === "rescheduled" ? "Rescheduled" :
+																 event.status === "off_sale" ? "Off Sale" :
+																 event.status.replace("_", " ")}
+															</span>
+														)}
+													</div>
 												</div>
 												<div className="md:ml-4 shrink-0">
 													<Link href={`/event/${event.slug}`}>

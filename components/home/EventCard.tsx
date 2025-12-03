@@ -3,6 +3,24 @@ import Link from "next/link";
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 
+const statusColors: Record<string, string> = {
+  on_sale: "bg-green-100 text-green-700",
+  off_sale: "bg-gray-100 text-gray-700",
+  sold_out: "bg-purple-100 text-purple-700",
+  cancelled: "bg-red-100 text-red-700",
+  postponed: "bg-yellow-100 text-yellow-700",
+  rescheduled: "bg-blue-100 text-blue-700",
+};
+
+const statusLabels: Record<string, string> = {
+  on_sale: "On Sale",
+  off_sale: "Off Sale",
+  sold_out: "Sold Out",
+  cancelled: "Cancelled",
+  postponed: "Postponed",
+  rescheduled: "Rescheduled",
+};
+
 interface EventCardProps {
   event: {
     _id: string;
@@ -14,6 +32,7 @@ interface EventCardProps {
     minPrice: number;
     maxPrice: number;
     currency: string;
+    status?: string;
     venue: {
       name: string;
       city: string;
@@ -53,8 +72,13 @@ export function EventCard({
       className={`overflow-hidden p-0 ${isPresale ? "relative" : ""} hover:shadow-xl hover:scale-[1.02] transition-all duration-200 cursor-pointer ${isCity ? "min-w-[240px]" : isEditors ? "min-w-[280px] max-w-[280px] md:max-w-none" : "min-w-[280px]"} md:min-w-0 shrink-0 md:shrink bg-white`}
     >
       {isPresale && (
-        <div className="absolute top-2 right-2 bg-purple-600 text-white text-xs px-2 py-1 rounded font-semibold z-10">
+        <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs px-2 py-1 rounded font-semibold z-10">
           PRE-SALE
+        </div>
+      )}
+      {event.status && event.status !== "on_sale" && (
+        <div className={`absolute top-2 ${isPresale ? "right-2" : "right-2"} ${statusColors[event.status] || statusColors.off_sale} text-xs px-2 py-1 rounded font-semibold z-10`}>
+          {statusLabels[event.status] || event.status.replace("_", " ")}
         </div>
       )}
       <div

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { ConvexClientProvider } from "~/components/shared/ConvexClientProvider";
+import { AuthGuard } from "~/components/shared/AuthGuard";
 import { Toaster } from "sonner";
 
 const Averta = localFont({
@@ -101,7 +102,9 @@ export default function RootLayout({
         className={`${Averta.className} antialiased`}
       >
         <ConvexClientProvider>
+          <AuthGuard>
           {children}
+          </AuthGuard>
           <Toaster />
         </ConvexClientProvider>
       </body>

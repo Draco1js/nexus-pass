@@ -44,7 +44,7 @@ export function FansAlsoViewed({ currentArtistId }: FansAlsoViewedProps) {
                         sizes="(max-width: 768px) 33vw, 25vw"
                       />
                     ) : (
-                      <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <div className="absolute inset-0 w-full h-full bg-linear-to-br from-tm-blue to-purple-600 flex items-center justify-center">
                         <span className="text-white text-2xl font-bold">
                           {artist.name.charAt(0)}
                         </span>

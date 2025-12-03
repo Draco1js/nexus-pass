@@ -8,12 +8,18 @@ export default defineSchema({
     authId: v.string(),
     image: v.optional(v.string()),
     phone: v.optional(v.string()),
-    role: v.union(v.literal("customer"), v.literal("admin")),
+    role: v.union(
+      v.literal("customer"),
+      v.literal("artist"),
+      v.literal("staff")
+    ),
     emailVerified: v.boolean(),
-    isDeleted: v.optional(v.boolean())
+    isDeleted: v.optional(v.boolean()),
+    polarCustomerId: v.optional(v.string()),
   })
     .index("by_email", ["email"])
-    .index("by_authId", ["authId"]),
+    .index("by_authId", ["authId"])
+    .index("by_role", ["role"]),
 
   // Categories for events (Concerts, Sports, Arts & Theater, Family, etc.)
   categories: defineTable({
@@ -42,6 +48,8 @@ export default defineSchema({
       })
     ),
     verified: v.boolean(),
+    // Link to user account for artist dashboard access
+    userId: v.optional(v.id("users")),
     // Artist-controlled content
     vipPackages: v.optional(
       v.array(
@@ -73,7 +81,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_slug", ["slug"])
-    .index("by_genre", ["genre"]),
+    .index("by_genre", ["genre"])
+    .index("by_userId", ["userId"]),
 
   // Venues
   venues: defineTable({
@@ -98,11 +107,15 @@ export default defineSchema({
         longitude: v.number(),
       })
     ),
+    // Staff verification
+    isVerified: v.optional(v.boolean()),
+    contactEmail: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index("by_slug", ["slug"])
     .index("by_city", ["city"])
-    .index("by_city_and_state", ["city", "state"]),
+    .index("by_city_and_state", ["city", "state"])
+    .index("by_isVerified", ["isVerified"]),
 
   // Events
   events: defineTable({
@@ -147,6 +160,10 @@ export default defineSchema({
     maxPrice: v.number(),
     currency: v.string(),
     
+    // Refund policy
+    refundPolicy: v.optional(v.string()),
+    cancellationReason: v.optional(v.string()),
+    
     // Metadata
     tags: v.array(v.string()),
     viewCount: v.number(),
@@ -187,6 +204,9 @@ export default defineSchema({
     salesStartTime: v.number(),
     salesEndTime: v.optional(v.number()),
     isActive: v.boolean(),
+    // Polar integration for dynamic pricing
+    polarProductId: v.optional(v.string()),
+    polarPriceId: v.optional(v.string()),
   })
     .index("by_eventId", ["eventId"])
     .index("by_eventId_and_isActive", ["eventId", "isActive"]),
@@ -215,6 +235,7 @@ export default defineSchema({
       v.literal("refunded")
     ),
     paymentMethod: v.optional(v.string()),
+    polarCheckoutId: v.optional(v.string()),
     confirmationEmail: v.boolean(),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -222,7 +243,8 @@ export default defineSchema({
     .index("by_userId", ["userId"])
     .index("by_eventId", ["eventId"])
     .index("by_orderNumber", ["orderNumber"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_polarCheckoutId", ["polarCheckoutId"]),
 
   // Tickets in an order
   tickets: defineTable({
@@ -240,11 +262,15 @@ export default defineSchema({
       v.literal("valid"),
       v.literal("used"),
       v.literal("cancelled"),
-      v.literal("transferred")
+      v.literal("transferred"),
+      v.literal("revoked")
     ),
     issuedAt: v.number(),
     usedAt: v.optional(v.number()),
     transferredTo: v.optional(v.id("users")),
+    revocationReason: v.optional(v.string()),
+    revokedAt: v.optional(v.number()),
+    revokedBy: v.optional(v.id("users")),
   })
     .index("by_orderId", ["orderId"])
     .index("by_ticketTypeId", ["ticketTypeId"])
@@ -308,5 +334,17 @@ export default defineSchema({
   })
     .index("by_userId", ["userId"])
     .index("by_orderId", ["orderId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_assignedTo", ["assignedTo"]),
+
+  // Messages for support ticket conversations
+  messages: defineTable({
+    ticketId: v.id("supportTickets"),
+    senderId: v.id("users"),
+    content: v.string(),
+    isStaffMessage: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_ticketId", ["ticketId"])
+    .index("by_senderId", ["senderId"]),
 });

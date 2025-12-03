@@ -8,12 +8,18 @@
  * @module
  */
 
+import type * as artists from "../artists.js";
 import type * as auth from "../auth.js";
 import type * as events from "../events.js";
 import type * as http from "../http.js";
 import type * as polar from "../polar.js";
 import type * as reviews from "../reviews.js";
+import type * as search from "../search.js";
 import type * as seedMutation from "../seedMutation.js";
+import type * as staff from "../staff.js";
+import type * as support from "../support.js";
+import type * as tickets from "../tickets.js";
+import type * as utils from "../utils.js";
 
 import type {
   ApiFromModules,
@@ -21,30 +27,44 @@ import type {
   FunctionReference,
 } from "convex/server";
 
+declare const fullApi: ApiFromModules<{
+  artists: typeof artists;
+  auth: typeof auth;
+  events: typeof events;
+  http: typeof http;
+  polar: typeof polar;
+  reviews: typeof reviews;
+  search: typeof search;
+  seedMutation: typeof seedMutation;
+  staff: typeof staff;
+  support: typeof support;
+  tickets: typeof tickets;
+  utils: typeof utils;
+}>;
+
 /**
- * A utility for referencing Convex functions in your app's API.
+ * A utility for referencing Convex functions in your app's public API.
  *
  * Usage:
  * ```js
  * const myFunctionReference = api.myModule.myFunction;
  * ```
  */
-declare const fullApi: ApiFromModules<{
-  auth: typeof auth;
-  events: typeof events;
-  http: typeof http;
-  polar: typeof polar;
-  reviews: typeof reviews;
-  seedMutation: typeof seedMutation;
-}>;
-declare const fullApiWithMounts: typeof fullApi;
-
 export declare const api: FilterApi<
-  typeof fullApiWithMounts,
+  typeof fullApi,
   FunctionReference<any, "public">
 >;
+
+/**
+ * A utility for referencing Convex functions in your app's internal API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = internal.myModule.myFunction;
+ * ```
+ */
 export declare const internal: FilterApi<
-  typeof fullApiWithMounts,
+  typeof fullApi,
   FunctionReference<any, "internal">
 >;
 
@@ -188,10 +208,6 @@ export declare const components: {
                   lastRequest?: null | number;
                 };
                 model: "rateLimit";
-              }
-            | {
-                data: { count: number; key: string; lastRequest: number };
-                model: "ratelimit";
               };
           onCreateHandle?: string;
           select?: Array<string>;
@@ -546,32 +562,6 @@ export declare const components: {
               }
             | {
                 model: "rateLimit";
-                where?: Array<{
-                  connector?: "AND" | "OR";
-                  field: "key" | "count" | "lastRequest" | "_id";
-                  operator?:
-                    | "lt"
-                    | "lte"
-                    | "gt"
-                    | "gte"
-                    | "eq"
-                    | "in"
-                    | "not_in"
-                    | "ne"
-                    | "contains"
-                    | "starts_with"
-                    | "ends_with";
-                  value:
-                    | string
-                    | number
-                    | boolean
-                    | Array<string>
-                    | Array<number>
-                    | null;
-                }>;
-              }
-            | {
-                model: "ratelimit";
                 where?: Array<{
                   connector?: "AND" | "OR";
                   field: "key" | "count" | "lastRequest" | "_id";
@@ -979,32 +969,6 @@ export declare const components: {
                     | Array<number>
                     | null;
                 }>;
-              }
-            | {
-                model: "ratelimit";
-                where?: Array<{
-                  connector?: "AND" | "OR";
-                  field: "key" | "count" | "lastRequest" | "_id";
-                  operator?:
-                    | "lt"
-                    | "lte"
-                    | "gt"
-                    | "gte"
-                    | "eq"
-                    | "in"
-                    | "not_in"
-                    | "ne"
-                    | "contains"
-                    | "starts_with"
-                    | "ends_with";
-                  value:
-                    | string
-                    | number
-                    | boolean
-                    | Array<string>
-                    | Array<number>
-                    | null;
-                }>;
               };
           onDeleteHandle?: string;
         },
@@ -1026,8 +990,7 @@ export declare const components: {
             | "oauthAccessToken"
             | "oauthConsent"
             | "jwks"
-            | "rateLimit"
-            | "ratelimit";
+            | "rateLimit";
           offset?: number;
           paginationOpts: {
             cursor: string | null;
@@ -1079,8 +1042,7 @@ export declare const components: {
             | "oauthAccessToken"
             | "oauthConsent"
             | "jwks"
-            | "rateLimit"
-            | "ratelimit";
+            | "rateLimit";
           select?: Array<string>;
           where?: Array<{
             connector?: "AND" | "OR";
@@ -1566,33 +1528,6 @@ export declare const components: {
                   key?: null | string;
                   lastRequest?: null | number;
                 };
-                where?: Array<{
-                  connector?: "AND" | "OR";
-                  field: "key" | "count" | "lastRequest" | "_id";
-                  operator?:
-                    | "lt"
-                    | "lte"
-                    | "gt"
-                    | "gte"
-                    | "eq"
-                    | "in"
-                    | "not_in"
-                    | "ne"
-                    | "contains"
-                    | "starts_with"
-                    | "ends_with";
-                  value:
-                    | string
-                    | number
-                    | boolean
-                    | Array<string>
-                    | Array<number>
-                    | null;
-                }>;
-              }
-            | {
-                model: "ratelimit";
-                update: { count?: number; key?: string; lastRequest?: number };
                 where?: Array<{
                   connector?: "AND" | "OR";
                   field: "key" | "count" | "lastRequest" | "_id";
@@ -2104,33 +2039,6 @@ export declare const components: {
                     | Array<number>
                     | null;
                 }>;
-              }
-            | {
-                model: "ratelimit";
-                update: { count?: number; key?: string; lastRequest?: number };
-                where?: Array<{
-                  connector?: "AND" | "OR";
-                  field: "key" | "count" | "lastRequest" | "_id";
-                  operator?:
-                    | "lt"
-                    | "lte"
-                    | "gt"
-                    | "gte"
-                    | "eq"
-                    | "in"
-                    | "not_in"
-                    | "ne"
-                    | "contains"
-                    | "starts_with"
-                    | "ends_with";
-                  value:
-                    | string
-                    | number
-                    | boolean
-                    | Array<string>
-                    | Array<number>
-                    | null;
-                }>;
               };
           onUpdateHandle?: string;
         },
@@ -2188,7 +2096,10 @@ export declare const components: {
               createdAt: string;
               id: string;
               isArchived: boolean;
+              maximumAmount?: number | null;
+              minimumAmount?: number | null;
               modifiedAt: string | null;
+              presetAmount?: number | null;
               priceAmount?: number;
               priceCurrency?: string;
               productId: string;
@@ -2282,7 +2193,10 @@ export declare const components: {
               createdAt: string;
               id: string;
               isArchived: boolean;
+              maximumAmount?: number | null;
+              minimumAmount?: number | null;
               modifiedAt: string | null;
+              presetAmount?: number | null;
               priceAmount?: number;
               priceCurrency?: string;
               productId: string;
@@ -2341,7 +2255,10 @@ export declare const components: {
             createdAt: string;
             id: string;
             isArchived: boolean;
+            maximumAmount?: number | null;
+            minimumAmount?: number | null;
             modifiedAt: string | null;
+            presetAmount?: number | null;
             priceAmount?: number;
             priceCurrency?: string;
             productId: string;
@@ -2448,7 +2365,10 @@ export declare const components: {
             createdAt: string;
             id: string;
             isArchived: boolean;
+            maximumAmount?: number | null;
+            minimumAmount?: number | null;
             modifiedAt: string | null;
+            presetAmount?: number | null;
             priceAmount?: number;
             priceCurrency?: string;
             productId: string;
@@ -2512,7 +2432,10 @@ export declare const components: {
               createdAt: string;
               id: string;
               isArchived: boolean;
+              maximumAmount?: number | null;
+              minimumAmount?: number | null;
               modifiedAt: string | null;
+              presetAmount?: number | null;
               priceAmount?: number;
               priceCurrency?: string;
               productId: string;
@@ -2571,7 +2494,10 @@ export declare const components: {
               createdAt: string;
               id: string;
               isArchived: boolean;
+              maximumAmount?: number | null;
+              minimumAmount?: number | null;
               modifiedAt: string | null;
+              presetAmount?: number | null;
               priceAmount?: number;
               priceCurrency?: string;
               productId: string;
@@ -2622,7 +2548,10 @@ export declare const components: {
               createdAt: string;
               id: string;
               isArchived: boolean;
+              maximumAmount?: number | null;
+              minimumAmount?: number | null;
               modifiedAt: string | null;
+              presetAmount?: number | null;
               priceAmount?: number;
               priceCurrency?: string;
               productId: string;

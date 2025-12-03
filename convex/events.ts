@@ -363,6 +363,146 @@ export const getEventBySlug = query({
 });
 
 /**
+ * Get all available tickets for an event (server-side generation)
+ * This generates tickets from ticket types to avoid heavy client-side calculations
+ */
+export const getAvailableTickets = query({
+	args: {
+		eventId: v.id("events"),
+	},
+	handler: async (ctx, args) => {
+		// Get ticket types for this event
+		const ticketTypes = await ctx.db
+			.query("ticketTypes")
+			.withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
+			.filter((q) => q.eq(q.field("isActive"), true))
+			.collect();
+
+		if (ticketTypes.length === 0) {
+			return [];
+		}
+
+		// Sort ticket types by price to find best value
+		const sortedTypes = [...ticketTypes].sort((a, b) => a.price - b.price);
+		const bestValueTypeId = sortedTypes[0]?._id;
+
+		// Generate tickets from ticket types
+		const tickets: Array<{
+			id: string;
+			ticketTypeId: string;
+			section: string;
+			row: string;
+			type: string;
+			price: number;
+			fees: number;
+			tier: string;
+			isBestValue?: boolean;
+			isLimited?: boolean;
+		}> = [];
+
+		ticketTypes.forEach((tt, idx) => {
+			// Generate tickets based on available quantity
+			// For each ticket type, create individual ticket entries
+			const numTickets = Math.min(tt.availableQuantity, 50); // Limit to 50 per type for performance
+			for (let i = 0; i < numTickets; i++) {
+				tickets.push({
+					id: `${tt._id}-${i}`,
+					ticketTypeId: tt._id,
+					section: tt.section || `Section ${String.fromCharCode(65 + idx)}`,
+					row: `Row ${Math.floor(i / 5) + 1}`, // Distribute across rows
+					type: tt.tier === "vip" ? "Official Platinum" : tt.tier === "premium" ? "Verified Resale" : "Standard Admission",
+					price: tt.price,
+					fees: tt.fees,
+					tier: tt.tier,
+					isBestValue: tt._id === bestValueTypeId && i === 0,
+					isLimited: tt.availableQuantity < 10,
+				});
+			}
+		});
+
+		// Sort by price (lowest first) as default
+		tickets.sort((a, b) => (a.price + a.fees) - (b.price + b.fees));
+
+		return tickets;
+	},
+});
+
+/**
+ * Get all available tickets for an event by slug (server-side generation)
+ * This is a convenience wrapper that gets tickets by slug instead of eventId
+ */
+export const getAvailableTicketsBySlug = query({
+	args: {
+		slug: v.string(),
+	},
+	handler: async (ctx, args) => {
+		// Get event by slug
+		const event = await ctx.db
+			.query("events")
+			.withIndex("by_slug", (q) => q.eq("slug", args.slug))
+			.first();
+
+		if (!event) {
+			return [];
+		}
+
+		// Get ticket types for this event
+		const ticketTypes = await ctx.db
+			.query("ticketTypes")
+			.withIndex("by_eventId", (q) => q.eq("eventId", event._id))
+			.filter((q) => q.eq(q.field("isActive"), true))
+			.collect();
+
+		if (ticketTypes.length === 0) {
+			return [];
+		}
+
+		// Sort ticket types by price to find best value
+		const sortedTypes = [...ticketTypes].sort((a, b) => a.price - b.price);
+		const bestValueTypeId = sortedTypes[0]?._id;
+
+		// Generate tickets from ticket types
+		const tickets: Array<{
+			id: string;
+			ticketTypeId: string;
+			section: string;
+			row: string;
+			type: string;
+			price: number;
+			fees: number;
+			tier: string;
+			isBestValue?: boolean;
+			isLimited?: boolean;
+		}> = [];
+
+		ticketTypes.forEach((tt, idx) => {
+			// Generate tickets based on available quantity
+			// For each ticket type, create individual ticket entries
+			const numTickets = Math.min(tt.availableQuantity, 50); // Limit to 50 per type for performance
+			for (let i = 0; i < numTickets; i++) {
+				tickets.push({
+					id: `${tt._id}-${i}`,
+					ticketTypeId: tt._id,
+					section: tt.section || `Section ${String.fromCharCode(65 + idx)}`,
+					row: `Row ${Math.floor(i / 5) + 1}`, // Distribute across rows
+					type: tt.tier === "vip" ? "Official Platinum" : tt.tier === "premium" ? "Verified Resale" : "Standard Admission",
+					price: tt.price,
+					fees: tt.fees,
+					tier: tt.tier,
+					isBestValue: tt._id === bestValueTypeId && i === 0,
+					isLimited: tt.availableQuantity < 10,
+				});
+			}
+		});
+
+		// Sort by price (lowest first) as default
+		tickets.sort((a, b) => (a.price + a.fees) - (b.price + b.fees));
+
+		return tickets;
+	},
+});
+
+/**
  * Get related artists (for Fans Also Viewed section)
  */
 export const getRelatedArtists = query({
@@ -413,6 +553,8 @@ export const getTicketType = query({
 			tier: ticketType.tier,
 			eventId: ticketType.eventId,
 			eventSlug: event?.slug || null,
+			polarProductId: ticketType.polarProductId,
+			polarPriceId: ticketType.polarPriceId,
 		};
 	},
 });

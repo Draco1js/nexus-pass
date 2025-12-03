@@ -18,6 +18,7 @@ import {
 import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { toast } from "sonner";
 
 interface ReviewsSectionProps {
 	artistId: Id<"artists">;
@@ -58,7 +59,7 @@ export function ReviewsSection({ artistId }: ReviewsSectionProps) {
 			setRating(5);
 		} catch (error) {
 			console.error("Failed to submit review:", error);
-			alert("Failed to submit review. Please try again.");
+			toast("Failed to submit review. Please try again.");
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -72,7 +73,7 @@ export function ReviewsSection({ artistId }: ReviewsSectionProps) {
 			await deleteReview({ reviewId });
 		} catch (error) {
 			console.error("Failed to delete review:", error);
-			alert("Failed to delete review. Please try again.");
+			toast("Failed to delete review. Please try again.");
 		} finally {
 			setDeletingId(null);
 		}
@@ -171,15 +172,13 @@ export function ReviewsSection({ artistId }: ReviewsSectionProps) {
 										>
 											Cancel
 										</Button>
-										<Button type="submit" disabled={isSubmitting || !comment.trim()}>
-											{isSubmitting ? (
-												<>
-													<Loader2 className="size-4 mr-2 animate-spin" />
-													Submitting...
-												</>
-											) : (
-												"Submit Review"
-											)}
+										<Button 
+											type="submit" 
+											disabled={!comment.trim()}
+											loading={isSubmitting}
+											loadingText="Submitting..."
+										>
+											Submit Review
 										</Button>
 									</div>
 								</form>
@@ -189,20 +188,14 @@ export function ReviewsSection({ artistId }: ReviewsSectionProps) {
 						<Button
 							variant="outline"
 							className="hidden md:flex"
-							disabled={isRedirecting}
+							loading={isRedirecting}
+							loadingText="Redirecting..."
 							onClick={() => {
 								setIsRedirecting(true);
 								window.location.href = "/login";
 							}}
 						>
-							{isRedirecting ? (
-								<>
-									<Loader2 className="size-4 mr-2 animate-spin" />
-									Redirecting...
-								</>
-							) : (
-								"Write a review"
-							)}
+							Write a review
 						</Button>
 					)}
 				</div>
