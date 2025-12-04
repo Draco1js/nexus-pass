@@ -36,6 +36,15 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "lib/test-helpers.ts",
+    "lib/test.setup.ts",
+    "e2e/**/*",
+    "vitest.config.ts",
+    "playwright.config.ts"
   ]
 }
